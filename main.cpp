@@ -6,8 +6,8 @@
 #include <time.h>
 bool game=true;
 int menu;
-char Map[12][21][30];
-char Menu[3][21][30];
+char Map[3][21][30];
+char Menu[12][21][30];
 int difficulty;
 int tank;
 int play_map;
@@ -18,6 +18,7 @@ void NewGame();
 void PrintMenu(int NumberMenu);
 void SelectTank();
 void SelectMap();
+void GameOn();
 
 void LoadResurces()
 {
@@ -40,22 +41,22 @@ void LoadResurces()
     for(int i=0;i<21;i++)
         for(int j=0;j<30;j++)
             {
-                //std::noskipws>>
-                MenuGetNull>>Menu[0][i][j];
-                MenuGetOne>>Menu[1][i][j];
-                MenuGetTwo>>Menu[2][i][j];
-                MenuGetThree>>Menu[3][i][j];
-                MenuGetFour>>Menu[4][i][j];
-                MenuGetFive>>Menu[5][i][j];
-                MenuGetSix>>Menu[6][i][j];
-                MenuGetSeven>>Menu[7][i][j];
-                MenuGetEight>>Menu[8][i][j];
-                MenuGetNine>>Menu[9][i][j];
-                MenuGetTen>>Menu[10][i][j];
-                MenuGetOneOne>>Menu[11][i][j];
-                MapGetNull>>Map[0][i][j];
-                MapGetOne>>Map[1][i][j];
-                MapGetTwo>>Map[2][i][j];
+                MenuGetNull>>Menu[0][i][j];if(Menu[0][i][j]=='.')Menu[0][i][j]=' ';
+                MenuGetOne>>Menu[1][i][j];if(Menu[1][i][j]=='.')Menu[1][i][j]=' ';
+                MenuGetTwo>>Menu[2][i][j];if(Menu[2][i][j]=='.')Menu[2][i][j]=' ';
+                MenuGetThree>>Menu[3][i][j];if(Menu[3][i][j]=='.')Menu[3][i][j]=' ';
+                MenuGetFour>>Menu[4][i][j];if(Menu[4][i][j]=='.')Menu[4][i][j]=' ';
+                MenuGetFive>>Menu[5][i][j];if(Menu[5][i][j]=='.')Menu[5][i][j]=' ';
+                MenuGetSix>>Menu[6][i][j];if(Menu[6][i][j]=='.')Menu[6][i][j]=' ';
+                MenuGetSeven>>Menu[7][i][j];if(Menu[7][i][j]=='.')Menu[7][i][j]=' ';
+                MenuGetEight>>Menu[8][i][j];if(Menu[8][i][j]=='.')Menu[8][i][j]=' ';
+                MenuGetNine>>Menu[9][i][j];if(Menu[9][i][j]=='.')Menu[9][i][j]=' ';
+                MenuGetTen>>Menu[10][i][j];if(Menu[10][i][j]=='.')Menu[10][i][j]=' ';
+                MenuGetOneOne>>Menu[11][i][j];if(Menu[11][i][j]=='.')Menu[11][i][j]=' ';
+
+                MapGetNull>>Map[0][i][j];if(Map[0][i][j]=='.')Map[0][i][j]=' ';
+                MapGetOne>>Map[1][i][j];if(Map[1][i][j]=='.')Map[1][i][j]=' ';
+                MapGetTwo>>Map[2][i][j];if(Map[2][i][j]=='.')Map[2][i][j]=' ';
             }
 
 }
@@ -65,6 +66,7 @@ void SelectMap()
 {
     srand (time(NULL));
     play_map=rand() % 5 + 1;
+    GameOn();
 
 }
 
