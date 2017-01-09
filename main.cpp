@@ -8,6 +8,10 @@ bool game=true;
 int menu;
 char Map[3][21][30];
 char Menu[12][21][30];
+char Map_Play[21][30];
+struct Tankuri{
+    int type,x,y,hp,dmg;
+} tanks[5];
 int difficulty;
 int tank;
 int play_map;
@@ -19,6 +23,61 @@ void PrintMenu(int NumberMenu);
 void SelectTank();
 void SelectMap();
 void GameOn();
+void Prepare_PlayGround();
+
+
+
+void Prepare_PlayGround()
+{
+    for(int i=0;i<21;i++)
+        for(int j=0;j<30;j++)
+            {
+                Map_Play[i][j]=Map[play_map][i][j];
+                if(Map_Play[i][j]=='S')
+                {
+                    tanks[0].type=tank;
+                    tanks[0].x=i;
+                    tanks[0].y=j;
+                    if(tanks[0].type==0)
+                    {
+                        tanks[0].hp=80;
+                        tanks[0].dmg=25;
+                    }
+                    else if(tanks[0].type==1)
+                    {
+                        tanks[0].hp=120;
+                        tanks[0].dmg=20;
+                    }
+                    else if(tanks[0].type==2)
+                    {
+                        tanks[0].hp=150;
+                        tanks[0].dmg=15;
+                    }
+                    else if(tanks[0].type==3)
+                    {
+                        tanks[0].hp=60;
+                        tanks[0].dmg=40;
+                    }
+                    else if(tanks[0].type==4)
+                    {
+                        tanks[0].hp=60;
+                        tanks[0].dmg=20;
+                    }
+
+                }
+                else if(Map_Play[i][j]=='1')
+                {
+
+                }
+            }
+
+}
+
+void GameOn()
+{
+    Prepare_PlayGround();
+
+}
 
 void LoadResurces()
 {
@@ -60,6 +119,9 @@ void LoadResurces()
             }
 
 }
+
+
+
 
 
 void SelectMap()
