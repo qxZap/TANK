@@ -8,7 +8,8 @@
 #define LEFT 4
 #define RIGHT 2
 #define DOWN 3
-bool game=true;
+bool in_menu=true;
+bool in_game=false;
 int menu;
 char Map[3][21][30];
 char Menu[12][21][30];
@@ -18,7 +19,6 @@ struct Tankuri{
     bool alive;
 } tanks[5];
 int difficulty;
-int tank;
 int play_map;
 using namespace std;
 void LoadResurces();
@@ -26,11 +26,10 @@ void LoadMenu();
 void NewGame();
 void PrintMenu(int NumberMenu);
 void SelectTank();
-void SelectMap();
 void GameOn();
 void Prepare_PlayGround();
 void PrintMap();
-void FromHPToString(int hp_amount,char hp_value);
+void FromHPToString(int hp_amount,char hp_value[3]);
 void OrientationPrint();
 void CopyGameMap();
 void ProcessInput(char input);
@@ -38,32 +37,227 @@ void MoveForward(int id);
 void MoveBackward(int id);
 void RotateLeft(int id);
 void RotateRight(int id);
-void HitFirstIA();
-void HitSecondIA();
-void HitThirdIA();
+void HitIA(int id);
+bool IASawYou(int id);
+void IAGoToLastPlayerPosition(int id,int x,int y);
+void IAShoot(int id);
+bool IATargetsYou(int id);
 
 
 
-void HitFirstIA()
+void IAGoToLastPlayerPosition(int id,int x,int y)
 {
-    if(tanks[0].dmg>=tanks[1].hp)
-        tanks[1].alive=false;
-    else
-        tanks[1].hp-=tanks[0].dmg;
+
 }
-void HitSecondIA()
+
+void IAShoot(int id)
 {
-    if(tanks[0].dmg>=tanks[2].hp)
-        tanks[2].alive=false;
+    if(tanks[id].dmg>=tanks[0].hp)
+        tanks[0].alive=false;
     else
-        tanks[2].hp-=tanks[0].dmg;
+        tanks[0].hp-=tanks[id].dmg;
 }
-void HitThirdIA()
+
+bool IATargetsYou(int id)
 {
-    if(tanks[0].dmg>=tanks[2].hp)
-        tanks[2].alive=false;
+    if(tanks[id].orientation==UP)
+    {
+        for(int i=tanks[id].x;i>0;i--)
+            if(Map_Play[0][i][tanks[0].y]=='@')
+                        return true;
+    }
+    else if(tanks[id].orientation==RIGHT)
+    {
+        for(int i=tanks[id].y;i<30;i++)
+            if(Map_Play[0][tanks[0].x][i]=='#')
+                        return true;
+    }
+    else if(tanks[id].orientation==DOWN)
+    {
+        for(int i=tanks[id].x;i<21;i++)
+            if(Map_Play[0][i][tanks[0].y]=='@')
+                        return true;
+    }
+    else if(tanks[id].orientation==LEFT)
+    {
+        for(int i=tanks[id].y;i>0;i--)
+            if(Map_Play[0][tanks[0].x][i]=='#')
+                        return true;
+    }
+
+    return false;
+}
+
+
+bool IASawYou(int id)
+{
+    char MapCopy[21][30];
+
+    for(int i=0;i<21;i++)
+        for(int j=0;j<30;j++)
+            {
+                if(Map_Play[0][i][j]!='#')
+                    MapCopy[i][j]=0;
+                else
+                    MapCopy[i][j]=Map_Play[0][i][j];
+            }
+    MapCopy[tanks[id].x][tanks[id].y]=1;
+
+    if(tanks[id].orientation==UP)
+    {
+        int ystart=tanks[id].y-1,yfinish=tanks[id].y+1,xgoes=tanks[id].x-1,printer=1;
+        for(;xgoes>0;xgoes--)
+        {
+            printer++;
+            for(int j=ystart;j<=yfinish;j++)
+            {
+                if(MapCopy[xgoes][j]!='#')
+                {
+                if(j<tanks[id].y)
+                {
+                    if(MapCopy[xgoes+1][j+1]>0&&MapCopy[xgoes+1][j+1]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                else if(j==tanks[id].y)
+                {
+                    if(MapCopy[xgoes+1][j]>0&&MapCopy[xgoes+1][j]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                else if(j>tanks[id].y)
+                {
+                    if(MapCopy[xgoes+1][j-1]>0&&MapCopy[xgoes+1][j-1]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                }
+            }
+            if(ystart>1)
+                ystart--;
+            if(yfinish<29)
+                yfinish++;
+        }
+        if(MapCopy[tanks[0].x][tanks[0].y]>0)
+            return true;
+    }
+    else if(tanks[id].orientation==RIGHT)
+    {
+        int ystart=tanks[id].x-1,yfinish=tanks[id].x+1,xgoes=tanks[id].y+1,printer=1;
+        for(;xgoes<30;xgoes++)
+        {
+            printer++;
+            for(int j=ystart;j<=yfinish;j++)
+            {
+                if(MapCopy[j][xgoes]!='#')
+                {
+                if(j<tanks[id].y)
+                {
+                    if(MapCopy[j-1][xgoes-1]>0&&MapCopy[j-1][xgoes-1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                else if(j==tanks[id].y)
+                {
+                    if(MapCopy[j][xgoes-1]>0&&MapCopy[j][xgoes-1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                else if(j>tanks[id].y)
+                {
+                    if(MapCopy[j+1][xgoes-1]>0&&MapCopy[j+1][xgoes-1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                }
+            }
+            if(ystart>1)
+                ystart--;
+            if(yfinish<20)
+                yfinish++;
+        }
+        if(MapCopy[tanks[0].x][tanks[0].y]>0)
+            return true;
+    }
+    else if(tanks[id].orientation==DOWN)
+    {
+        int ystart=tanks[id].y-1,yfinish=tanks[id].y+1,xgoes=tanks[id].x+1,printer=1;
+        for(;xgoes<20;xgoes++)
+        {
+            printer++;
+            for(int j=ystart;j<=yfinish;j++)
+            {
+                if(MapCopy[xgoes][j]!='#')
+                {
+                if(j<tanks[id].y)
+                {
+                    if(MapCopy[xgoes-1][j+1]>0&&MapCopy[xgoes-1][j+1]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                else if(j==tanks[id].y)
+                {
+                    if(MapCopy[xgoes-1][j]>0&&MapCopy[xgoes-1][j]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                else if(j>tanks[id].y)
+                {
+                    if(MapCopy[xgoes-1][j-1]>0&&MapCopy[xgoes-1][j-1]!='#')
+                        MapCopy[xgoes][j]=printer;
+                }
+                }
+            }
+            if(ystart>1)
+                ystart--;
+            if(yfinish<29)
+                yfinish++;
+        }
+        if(MapCopy[tanks[0].x][tanks[0].y]>0)
+            return true;
+    }
+    else if(tanks[id].orientation==LEFT)
+    {
+        int ystart=tanks[id].x-1,yfinish=tanks[id].x+1,xgoes=tanks[id].y-1,printer=1;
+        for(;xgoes>1;xgoes--)
+        {
+            printer++;
+            for(int j=ystart;j<=yfinish;j++)
+            {
+                if(MapCopy[j][xgoes]!='#')
+                {
+                if(j<tanks[id].y)
+                {
+                    if(MapCopy[j-1][xgoes+1]>0&&MapCopy[j-1][xgoes+1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                else if(j==tanks[id].y)
+                {
+                    if(MapCopy[j][xgoes+1]>0&&MapCopy[j][xgoes+1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                else if(j>tanks[id].y)
+                {
+                    if(MapCopy[j+1][xgoes+1]>0&&MapCopy[j+1][xgoes+1]!='#')
+                        MapCopy[j][xgoes]=printer;
+                }
+                }
+            }
+            if(ystart>1)
+                ystart--;
+            if(yfinish<20)
+                yfinish++;
+        }
+        if(MapCopy[tanks[0].x][tanks[0].y]>0)
+            return true;
+    }
+    return false;
+
+
+}
+
+
+
+
+
+void HitIA(int id)
+{
+    if(tanks[0].dmg>=tanks[id].hp)
+        tanks[id].alive=false;
     else
-        tanks[2].hp-=tanks[0].dmg;
+        tanks[id].hp-=tanks[0].dmg;
 }
 
 void Shoot()
@@ -74,11 +268,11 @@ void Shoot()
             if(Map_Play[0][i][tanks[0].y]=='#')
                 break;
             else if(Map_Play[0][i][tanks[0].y]=='1')
-                HitFirstIA();
+                HitIA(1);
             else if(Map_Play[0][i][tanks[0].y]=='2')
-                HitSecondIA();
+                HitIA(2);
             else if(Map_Play[0][i][tanks[0].y]=='3')
-                HitThirdIA();
+                HitIA(3);
     }
     else if(tanks[0].orientation==RIGHT)
     {
@@ -86,11 +280,11 @@ void Shoot()
             if(Map[0][tanks[0].x][i]=='#')
                 break;
             else if(Map[0][tanks[0].x][i]=='1')
-                HitFirstIA();
+                HitIA(1);
             else if(Map[0][tanks[0].x][i]=='2')
-                HitSecondIA();
+                HitIA(2);
             else if(Map[0][tanks[0].x][i]=='3')
-                HitThirdIA();
+                HitIA(3);
 
     }
     else if(tanks[0].orientation==DOWN)
@@ -99,11 +293,11 @@ void Shoot()
             if(Map_Play[0][i][tanks[0].y]=='#')
                 break;
             else if(Map_Play[0][i][tanks[0].y]=='1')
-                HitFirstIA();
+                HitIA(1);
             else if(Map_Play[0][i][tanks[0].y]=='2')
-                HitSecondIA();
+                HitIA(2);
             else if(Map_Play[0][i][tanks[0].y]=='3')
-                HitThirdIA();
+                HitIA(3);
     }
     else if(tanks[0].orientation==LEFT)
     {
@@ -111,11 +305,11 @@ void Shoot()
             if(Map[0][tanks[0].x][i]=='#')
                 break;
             else if(Map[0][tanks[0].x][i]=='1')
-                HitFirstIA();
+                HitIA(1);
             else if(Map[0][tanks[0].x][i]=='2')
-                HitSecondIA();
+                HitIA(2);
             else if(Map[0][tanks[0].x][i]=='3')
-                HitThirdIA();
+                HitIA(3);
 
     }
 }
@@ -238,6 +432,30 @@ void ProcessInput(char input)
         RotateRight(0);
     else if(input=='s')
         MoveBackward(0);
+    if(!tanks[1].alive)
+    {
+        Map_Play[0][tanks[1].x][tanks[1].y]=' ';
+    }
+    if(!tanks[2].alive)
+    {
+        Map_Play[0][tanks[2].x][tanks[2].y]=' ';
+    }
+    if(!tanks[3].alive)
+    {
+        Map_Play[0][tanks[3].x][tanks[3].y]=' ';
+    }
+
+
+
+    for(int i=1;i<=3;i++)
+        {
+            if(IATargetsYou(i))
+                IAShoot(i);
+            if(IASawYou(i))
+                IAGoToLastPlayerPosition(i,tanks[0].x,tanks[0].y);
+        }
+
+
 
 }
 
@@ -265,7 +483,8 @@ void OrientationPrint()
                                 Map_Play[1][tanks[0].x][tanks[0].y-1]='+';
                         }
 
-
+                if(tanks[1].alive)
+                {
                     if(tanks[1].orientation==UP)
                     {
                         if(Map_Play[0][tanks[1].x-1][tanks[1].y]==' ')
@@ -286,8 +505,10 @@ void OrientationPrint()
                         if(Map_Play[0][tanks[1].x][tanks[1].y-1]==' ')
                             Map_Play[1][tanks[1].x][tanks[1].y-1]='+';
                     }
+                }
 
-
+                if(tanks[2].alive)
+                {
                     if(tanks[2].orientation==UP)
                     {
                         if(Map_Play[0][tanks[2].x-1][tanks[2].y]==' ')
@@ -308,8 +529,10 @@ void OrientationPrint()
                         if(Map_Play[0][tanks[2].x][tanks[2].y-1]==' ')
                             Map_Play[1][tanks[2].x][tanks[2].y-1]='+';
                     }
+                }
 
-
+                if(tanks[3].alive)
+                {
                     if(tanks[3].orientation==UP)
                     {
                         if(Map_Play[0][tanks[3].x-1][tanks[3].y]==' ')
@@ -330,6 +553,7 @@ void OrientationPrint()
                         if(Map_Play[0][tanks[3].x][tanks[3].y-1]==' ')
                             Map_Play[1][tanks[3].x][tanks[3].y-1]='+';
                     }
+                }
 
 }
 
@@ -351,10 +575,8 @@ void PrintMap()
         Map_Play[1][0][3]=hp_value[1];
         Map_Play[1][0][4]=hp_value[2];
         Map_Play[1][0][5]='H';
-        Map_Play[1][0][5]='P';
-
+        Map_Play[1][0][6]='P';
         OrientationPrint();
-
         system("CLS");
         for(int i=0;i<21;i++)
         {
@@ -375,7 +597,7 @@ void Prepare_PlayGround()
                 Map_Play[0][i][j]=Map_Play[1][i][j]=Map[play_map][i][j];
                 if(Map_Play[0][i][j]=='@')
                 {
-                    tanks[0].type=tank;
+
                     tanks[0].x=i;
                     tanks[0].y=j;
                     tanks[0].orientation=rand()%4+1;
@@ -460,12 +682,14 @@ void GameOn()
     Prepare_PlayGround();
     char input;
     PrintMap();
-    while(game)
+    while(in_game)
     {
         PrintMap();
-        CopyGameMap();
         cin>>input;
         ProcessInput(input);
+        CopyGameMap();
+        if(tanks[0].hp<=0||((!tanks[1].alive)&&(!tanks[1].alive)&&(!tanks[1].alive)))
+            in_game=false;
     }
 
 }
@@ -482,7 +706,7 @@ void LoadResurces()
     ifstream MenuGetSeven("res/Menu7.txt");
     ifstream MenuGetEight("res/Menu8.txt");
     ifstream MenuGetNine("res/Menu9.txt");
-    ifstream MenuGetTen("re/Menu10.txt");
+    ifstream MenuGetTen("res/Menu10.txt");
     ifstream MenuGetOneOne("res/Menu11.txt");
     ifstream MapGetNull("res/Map0.txt");
     ifstream MapGetOne("res/Map1.txt");
@@ -515,14 +739,6 @@ void LoadResurces()
 
 
 
-void SelectMap()
-{
-    srand(time(NULL));
-    play_map=rand() % 3 + 1;
-    GameOn();
-
-}
-
 void PrintMenu(int NumberMenu)
 {
         system("CLS");
@@ -540,7 +756,7 @@ void SelectTank()
     char input;
     int position=0;
     PrintMenu(position+6);
-    while(game)
+    while(in_menu)
     {
         PrintMenu(position+6);
         cin>>input;
@@ -553,9 +769,12 @@ void SelectTank()
             }
             else
             {
-                break;
-                tank=position;
-                SelectMap();
+                tanks[0].type=position;
+                srand(time(NULL));
+                play_map=rand() % 3 + 1;
+                in_game=true;
+                in_menu=false;
+                GameOn();
             }
         }
         else if(input=='a')
@@ -591,7 +810,7 @@ void NewGame()
     char input;
     int position=0;
     PrintMenu(position+2);
-    while(game)
+    while(in_menu)
     {
 
         PrintMenu(position+2);
@@ -635,7 +854,7 @@ void LoadMenu()
         char input;
         int position=0;
         PrintMenu(0);
-        while(game)
+        while(in_menu)
         {
             cin>>input;
             if(input=='q')
@@ -643,7 +862,7 @@ void LoadMenu()
                 if(position==0)
                     NewGame();
                 else
-                    game=false;
+                    in_menu=false;
             }
             else if(input=='s')
             {
@@ -666,7 +885,7 @@ void LoadMenu()
 int main()
 {
     LoadResurces();
-    while(game)
+    while(in_menu)
         LoadMenu();
     return 0;
 
