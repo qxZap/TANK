@@ -10,9 +10,10 @@
 #define DOWN 3
 bool in_menu=true;
 bool in_game=false;
+bool game_over=false;
 int menu;
 char Map[3][21][30];
-char Menu[12][21][30];
+char Menu[16][21][30];
 char Map_Play[2][21][30];
 struct Tankuri{
     int type,x,y,hp,dmg,orientation;
@@ -27,6 +28,8 @@ void NewGame();
 void PrintMenu(int NumberMenu);
 void SelectTank();
 void GameOn();
+void GameOverWin();
+void GameOverLose();
 void Prepare_PlayGround();
 void PrintMap();
 void FromHPToString(int hp_amount,char hp_value[3]);
@@ -54,35 +57,43 @@ void IAShoot(int id)
 {
     if(tanks[id].dmg>=tanks[0].hp)
         tanks[0].alive=false;
-    else
-        tanks[0].hp-=tanks[id].dmg;
+
+    tanks[0].hp-=tanks[id].dmg;
 }
 
 bool IATargetsYou(int id)
 {
     if(tanks[id].orientation==UP)
     {
-        for(int i=tanks[id].x;i>0;i--)
-            if(Map_Play[0][i][tanks[0].y]=='@')
-                        return true;
+        for(int i=tanks[id].x-1;i>0;i--)
+            if(Map_Play[0][i][tanks[id].y]=='#')
+                break;
+            else if(Map_Play[0][i][tanks[id].y]=='@')
+                return true;
     }
     else if(tanks[id].orientation==RIGHT)
     {
-        for(int i=tanks[id].y;i<30;i++)
-            if(Map_Play[0][tanks[0].x][i]=='#')
-                        return true;
+        for(int i=tanks[id].y+1;i<30;i++)
+            if(Map_Play[0][tanks[id].x][i]=='#')
+                break;
+            else if(Map_Play[0][tanks[id].x][i]=='@')
+                return true;
     }
     else if(tanks[id].orientation==DOWN)
     {
-        for(int i=tanks[id].x;i<21;i++)
-            if(Map_Play[0][i][tanks[0].y]=='@')
-                        return true;
+        for(int i=tanks[id].x+1;i<21;i++)
+            if(Map_Play[0][i][tanks[id].y]=='#')
+                break;
+        else if(Map_Play[0][i][tanks[id].y]=='@')
+                return true;
     }
     else if(tanks[id].orientation==LEFT)
     {
-        for(int i=tanks[id].y;i>0;i--)
-            if(Map_Play[0][tanks[0].x][i]=='#')
-                        return true;
+        for(int i=tanks[id].y-1;i>0;i--)
+            if(Map_Play[0][tanks[id].x][i]=='#')
+                break;
+            else if(Map_Play[0][tanks[id].x][i]=='@')
+                return true;
     }
 
     return false;
@@ -677,6 +688,7 @@ void CopyGameMap()
 }
 
 
+
 void GameOn()
 {
     Prepare_PlayGround();
@@ -689,7 +701,14 @@ void GameOn()
         ProcessInput(input);
         CopyGameMap();
         if(tanks[0].hp<=0||((!tanks[1].alive)&&(!tanks[1].alive)&&(!tanks[1].alive)))
-            in_game=false;
+            {
+                in_game=false;
+                game_over=true;
+                if(tanks[0].hp>0)
+                    GameOverWin();
+                else
+                    GameOverLose();
+            }
     }
 
 }
@@ -708,6 +727,11 @@ void LoadResurces()
     ifstream MenuGetNine("res/Menu9.txt");
     ifstream MenuGetTen("res/Menu10.txt");
     ifstream MenuGetOneOne("res/Menu11.txt");
+    ifstream MenuGetOneTwo("res/Menu12.txt");
+    ifstream MenuGetOneThree("res/Menu13.txt");
+    ifstream MenuGetOneFour("res/Menu14.txt");
+    ifstream MenuGetOneFive("res/Menu15.txt");
+
     ifstream MapGetNull("res/Map0.txt");
     ifstream MapGetOne("res/Map1.txt");
     ifstream MapGetTwo("res/Map2.txt");
@@ -727,6 +751,10 @@ void LoadResurces()
                 MenuGetNine>>Menu[9][i][j];if(Menu[9][i][j]=='.')Menu[9][i][j]=' ';
                 MenuGetTen>>Menu[10][i][j];if(Menu[10][i][j]=='.')Menu[10][i][j]=' ';
                 MenuGetOneOne>>Menu[11][i][j];if(Menu[11][i][j]=='.')Menu[11][i][j]=' ';
+                MenuGetOneTwo>>Menu[12][i][j];if(Menu[12][i][j]=='.')Menu[12][i][j]=' ';
+                MenuGetOneThree>>Menu[13][i][j];if(Menu[13][i][j]=='.')Menu[13][i][j]=' ';
+                MenuGetOneFour>>Menu[14][i][j];if(Menu[14][i][j]=='.')Menu[14][i][j]=' ';
+                MenuGetOneFive>>Menu[15][i][j];if(Menu[15][i][j]=='.')Menu[15][i][j]=' ';
 
                 MapGetNull>>Map[0][i][j];if(Map[0][i][j]=='.')Map[0][i][j]=' ';
                 MapGetOne>>Map[1][i][j];if(Map[1][i][j]=='.')Map[1][i][j]=' ';
@@ -750,6 +778,78 @@ void PrintMenu(int NumberMenu)
         }
 
 }
+
+void GameOverWin()
+{
+    char input;
+    int position=0;
+    PrintMenu(position+12);
+    while(game_over)
+    {
+        PrintMenu(position+12);
+        cin>>input;
+        if(input=='q')
+        {
+            game_over=false;
+            if(position==0)
+            {
+                in_menu=true;
+                LoadMenu();
+            }
+        }
+        else if(input=='w')
+        {
+            if(position==0)
+                position++;
+            else
+                position--;
+        }
+        else if(input=='s')
+        {
+            if(position==1)
+                position--;
+            else
+                position++;
+        }
+    }
+}
+
+
+void GameOverLose()
+{
+    char input;
+    int position=0;
+    PrintMenu(position+14);
+    while(game_over)
+    {
+        PrintMenu(position+14);
+        cin>>input;
+        if(input=='q')
+        {
+            game_over=false;
+            if(position==0)
+            {
+                in_menu=true;
+                LoadMenu();
+            }
+        }
+        else if(input=='w')
+        {
+            if(position==0)
+                position++;
+            else
+                position--;
+        }
+        else if(input=='s')
+        {
+            if(position==1)
+                position--;
+            else
+                position++;
+        }
+    }
+}
+
 
 void SelectTank()
 {
