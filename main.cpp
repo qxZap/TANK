@@ -11,6 +11,8 @@
 bool in_menu=true;
 bool in_game=false;
 bool game_over=false;
+bool nuke=false;
+int OneShootKill=0;
 int menu;
 char Map[3][21][30];
 char Menu[16][21][30];
@@ -45,8 +47,15 @@ bool IASawYou(int id);
 void IAGoToLastPlayerPosition(int id,int x,int y);
 void IAShoot(int id);
 bool IATargetsYou(int id);
+void AlertIA(int id);
+void Nuke();
 
 
+void Nuke()
+{
+    for(int i=1;i<=3;i++)
+        tanks[i].hp-=30;
+}
 
 void IAGoToLastPlayerPosition(int id,int x,int y)
 {
@@ -259,16 +268,85 @@ bool IASawYou(int id)
 
 }
 
+void AlertIA(int id)
+{
+    if(tanks[0].orientation==UP)
+    {
+        if(tanks[id].orientation==LEFT)
+            RotateLeft(id);
+        else if(tanks[id].orientation==UP||tanks[id].orientation==RIGHT)
+            RotateRight(id);
+    }
+    else if(tanks[0].orientation==RIGHT)
+    {
+        if(tanks[id].orientation==UP)
+            RotateLeft(id);
+        else if(tanks[id].orientation==LEFT||tanks[id].orientation==DOWN)
+            RotateRight(id);
+    }
+    else if(tanks[0].orientation==DOWN)
+    {
+        if(tanks[id].orientation==RIGHT)
+            RotateLeft(id);
+        else if(tanks[id].orientation==DOWN||tanks[id].orientation==LEFT)
+            RotateRight(id);
+    }
+    else if(tanks[0].orientation==LEFT)
+    {
+        if(tanks[id].orientation==DOWN)
+            RotateLeft(id);
+        else if(tanks[id].orientation==LEFT||tanks[id].orientation==UP)
+            RotateRight(id);
+    }
 
-
+}
 
 
 void HitIA(int id)
 {
+
+
+    int chance=rand()%100+1;
+    if(tanks[0].type==0)
+        {
+        if(chance<=5)
+           tanks[0].dmg*=2;
+        }
+    else if(tanks[0].type==1)
+        {
+        tanks[0].hp+=2;
+            if(tanks[0].hp>120)
+                tanks[0].hp=120;
+        }
+
     if(tanks[0].dmg>=tanks[id].hp)
         tanks[id].alive=false;
     else
         tanks[id].hp-=tanks[0].dmg;
+    if(difficulty==2)
+    {
+        for(int i=1;i<=3;i++)
+            if(!IASawYou(i)&&!IATargetsYou(i))
+                {
+                    AlertIA(i);
+                }
+    }
+    else if(difficulty==1||difficulty==0)
+    {
+        if(!IASawYou(id)&&!IATargetsYou(id))
+                {
+                    AlertIA(id);
+                }
+    }
+    if(tanks[0].type==0)
+        if(chance<=5)
+           tanks[0].dmg/=2;
+    if(OneShootKill)
+    {
+        tanks[id].alive=false;
+        tanks[id].hp=0;
+        OneShootKill--;
+    }
 }
 
 void Shoot()
@@ -336,6 +414,35 @@ void MoveForward(int id)
             Map_Play[0][tanks[id].x][tanks[id].y]=' ';
             tanks[id].x--;
         }
+        else if(Map_Play[0][tanks[id].x-1][tanks[id].y]=='N')
+        {
+            Map_Play[0][tanks[id].x-1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x--;
+            nuke=true;
+        }
+        else if(Map_Play[0][tanks[id].x-1][tanks[id].y]=='O')
+        {
+            Map_Play[0][tanks[id].x-1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x--;
+            OneShootKill=1;
+        }
+        else if(Map_Play[0][tanks[id].x-1][tanks[id].y]=='H')
+        {
+            Map_Play[0][tanks[id].x-1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x--;
+            tanks[0].hp+=30;
+        }
+        else if(Map_Play[0][tanks[id].x-1][tanks[id].y]=='D')
+        {
+            Map_Play[0][tanks[id].x-1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x--;
+            tanks[0].dmg+=5;
+        }
+
     }
     else if(tanks[id].orientation==RIGHT)
     {
@@ -344,6 +451,34 @@ void MoveForward(int id)
             Map_Play[0][tanks[id].x][tanks[id].y+1]='@';
             Map_Play[0][tanks[id].x][tanks[id].y]=' ';
             tanks[id].y++;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y+1]=='N')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y+1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y++;
+            nuke=true;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y+1]=='O')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y+1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y++;
+            OneShootKill=1;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y+1]=='H')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y+1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y++;
+            tanks[0].hp+=30;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y+1]=='D')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y+1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y++;
+            tanks[0].dmg+=5;
         }
     }
     else if(tanks[id].orientation==DOWN)
@@ -354,6 +489,34 @@ void MoveForward(int id)
             Map_Play[0][tanks[id].x][tanks[id].y]=' ';
             tanks[id].x++;
         }
+        else if(Map_Play[0][tanks[id].x+1][tanks[id].y]=='N')
+        {
+            Map_Play[0][tanks[id].x+1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x++;
+            nuke=true;
+        }
+        else if(Map_Play[0][tanks[id].x+1][tanks[id].y]=='O')
+        {
+            Map_Play[0][tanks[id].x+1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x++;
+            OneShootKill=1;
+        }
+        else if(Map_Play[0][tanks[id].x+1][tanks[id].y]=='H')
+        {
+            Map_Play[0][tanks[id].x+1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x++;
+            tanks[0].hp+=30;
+        }
+        else if(Map_Play[0][tanks[id].x+1][tanks[id].y]=='D')
+        {
+            Map_Play[0][tanks[id].x+1][tanks[id].y]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].x++;
+            tanks[0].dmg+=5;
+        }
     }
     else if(tanks[id].orientation==LEFT)
     {
@@ -362,6 +525,34 @@ void MoveForward(int id)
             Map_Play[0][tanks[id].x][tanks[id].y-1]='@';
             Map_Play[0][tanks[id].x][tanks[id].y]=' ';
             tanks[id].y--;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y-1]=='N')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y-1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y--;
+            nuke=true;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y-1]=='O')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y-1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y--;
+            OneShootKill=1;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y-1]=='H')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y-1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y--;
+            tanks[0].hp+=30;
+        }
+        else if(Map_Play[0][tanks[id].x][tanks[id].y-1]=='D')
+        {
+            Map_Play[0][tanks[id].x][tanks[id].y-1]='@';
+            Map_Play[0][tanks[id].x][tanks[id].y]=' ';
+            tanks[id].y--;
+           tanks[0].dmg+=5;
         }
     }
 }
@@ -433,6 +624,32 @@ void RotateRight(int id)
 
 void ProcessInput(char input)
 {
+    int chanceNuke=rand()%100+1,chanceOne=rand()%100+1,chanceHP=rand()%100+1,chanceDMG=rand()%100+1;
+    int x=rand()%28+2,y=rand()%2+18;
+    if(chanceHP<3)
+    {
+        if(Map_Play[0][x][y]==' ')
+                Map_Play[0][x][y]='H';
+    }
+    else if(chanceNuke<3)
+    {
+        if(Map_Play[0][x][y]==' ')
+                Map_Play[0][x][y]='N';
+    }
+    else if(chanceDMG<3)
+    {
+        if(Map_Play[0][x][y]==' ')
+                Map_Play[0][x][y]='D';
+    }
+    else if(chanceOne<3)
+    {
+        if(Map_Play[0][x][y]==' ')
+                Map_Play[0][x][y]='O';
+    }
+
+
+
+
     if(input=='q')
         Shoot();
     else if(input=='w')
@@ -443,6 +660,16 @@ void ProcessInput(char input)
         RotateRight(0);
     else if(input=='s')
         MoveBackward(0);
+    else if(input=='n')
+        Nuke();
+
+    if(tanks[0].type==2)
+    {
+        tanks[0].hp+=1;
+        if(tanks[0].hp>150)
+            tanks[0].hp=150;
+    }
+
     if(!tanks[1].alive)
     {
         Map_Play[0][tanks[1].x][tanks[1].y]=' ';
@@ -455,8 +682,6 @@ void ProcessInput(char input)
     {
         Map_Play[0][tanks[3].x][tanks[3].y]=' ';
     }
-
-
 
     for(int i=1;i<=3;i++)
         {
@@ -587,6 +812,10 @@ void PrintMap()
         Map_Play[1][0][4]=hp_value[2];
         Map_Play[1][0][5]='H';
         Map_Play[1][0][6]='P';
+        if(nuke)
+            Map_Play[1][0][9]='N';
+        if(OneShootKill)
+            Map_Play[1][0][10]='O';
         OrientationPrint();
         system("CLS");
         for(int i=0;i<21;i++)
